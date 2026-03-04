@@ -1,0 +1,206 @@
+/* 基础背景设置：全黑，隐藏滚动条 */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: #000;
+    color: #fff;
+    margin: 0;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    height: 100vh;
+}
+
+#app {
+    position: fixed;
+    top: 60px;
+    left: 40px;
+    width: calc(100% - 80px);
+    max-width: 600px;
+    z-index: 10;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+#app::-webkit-scrollbar {
+    display: none;
+}
+
+/* 输入框：平时不可见(opacity: 0)，激活时显示 */
+#mainInput {
+    background: none;
+    border: none;
+    border-bottom: 1px solid #333;
+    color: #fff;
+    font-size: 2rem;
+    width: 100%;
+    outline: none;
+    opacity: 0;
+    transition: 0.3s;
+    margin-bottom: 40px;
+    padding: 15px 0;
+}
+
+/* 输入框激活状态 */
+#mainInput.active {
+    opacity: 1;
+    border-bottom: 1px solid #fff;
+}
+
+/* 输入框占位符样式 */
+#mainInput::placeholder {
+    color: #444;
+}
+
+/* 任务列表容器 */
+#todoList {
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+/* 任务组容器 - 任务 + 描述为一个整体 */
+.task-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 0.2s ease;
+    order: 0;
+    cursor: grab;
+    will-change: transform;
+}
+
+.task-group:active {
+    cursor: grabbing;
+}
+
+.task-group.completed {
+    order: 1;
+    opacity: 0.3;
+}
+
+.task-group.focused {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 16px;
+    border-radius: 8px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    gap: 8px;
+}
+
+.task-group.dragging {
+    opacity: 0.7;
+    transform: scale(1.02) translateY(0);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.12);
+    padding: 16px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* 任务列表样式 - 更大的字体 */
+li {
+    list-style: none;
+    font-size: 2.2rem;
+    font-weight: 600;
+    opacity: 1;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    color: #fff;
+    word-break: break-word;
+    max-width: 100%;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+.task-group.focused li {
+    color: #fff;
+    opacity: 1;
+}
+
+/* 已完成任务的删除线 */
+.task-group.completed li {
+    text-decoration: line-through;
+    color: #555;
+}
+
+/* 任务描述样式 - 更大字体，更明显颜色 */
+.task-desc {
+    font-size: 1.3rem;
+    opacity: 0.5;
+    color: #999;
+    word-break: break-word;
+    cursor: pointer;
+    white-space: pre-wrap;
+    margin-left: 24px;
+    line-height: 1.5;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.task-group.focused .task-desc {
+    opacity: 0.8;
+    color: #bbb;
+}
+
+.task-group.completed .task-desc {
+    color: #555;
+}
+
+/* 统计信息样式 */
+#stats {
+    font-size: 0.9rem;
+    opacity: 0.4;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #222;
+    transition: opacity 0.3s;
+}
+
+#stats:hover {
+    opacity: 0.6;
+}
+
+/* 画布定位 */
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    #app {
+        top: 40px;
+        left: 20px;
+        width: calc(100% - 40px);
+        max-width: 100%;
+    }
+
+    li {
+        font-size: 1.8rem;
+    }
+
+    .task-desc {
+        font-size: 1rem;
+        margin-left: 16px;
+    }
+
+    #mainInput {
+        font-size: 1.5rem;
+        margin-bottom: 30px;
+    }
+
+    .task-group.focused {
+        padding: 12px;
+    }
+}
