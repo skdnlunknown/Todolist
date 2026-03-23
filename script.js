@@ -13,6 +13,7 @@ var doneCountEl = document.getElementById('doneCount');
 // ============================================
 var isInputActive = false;
 var selectedIndex = -1;
+var selectedGroup = null;
 var particles = [];
 var isEditingDesc = false;
 var currentDescInput = null;
@@ -51,29 +52,25 @@ document.addEventListener('keydown', function (event) {
             saveDescription(currentDescInput);
 
             var liElement = currentDescInput.previousElementSibling;
-            var items = getAllUncompletedItems();
+            var group = liElement.closest('.task-group');
+            var allGroups = getAllGroupsInVisualOrder();
 
             if (event.key === 'ArrowUp') {
-                for (var i = 0; i < items.length; i++) {
-                    if (items[i] === liElement) {
-                        selectedIndex = i > 0 ? i - 1 : -1;
-                        break;
-                    }
+                var currentIndex = allGroups.indexOf(group);
+                if (currentIndex > 0) {
+                    selectedGroup = allGroups[currentIndex - 1];
+                } else {
+                    selectedGroup = null;
                 }
             } else if (event.key === 'ArrowDown') {
-                for (var i = 0; i < items.length; i++) {
-                    if (items[i] === liElement) {
-                        selectedIndex = i < items.length - 1 ? i + 1 : -1;
-                        break;
-                    }
+                var currentIndex = allGroups.indexOf(group);
+                if (currentIndex < allGroups.length - 1) {
+                    selectedGroup = allGroups[currentIndex + 1];
+                } else {
+                    selectedGroup = null;
                 }
             } else if (event.key === 'ArrowLeft') {
-                for (var i = 0; i < items.length; i++) {
-                    if (items[i] === liElement) {
-                        selectedIndex = i;
-                        break;
-                    }
-                }
+                selectedGroup = group;
             }
 
             isEditingDesc = false;
@@ -109,7 +106,7 @@ document.addEventListener('keydown', function (event) {
         if (isInputActive) {
             mainInput.classList.add('active');
             mainInput.focus();
-            selectedIndex = -1;
+            selectedGroup = null;
         } else {
             mainInput.classList.remove('active');
             mainInput.blur();
@@ -134,17 +131,20 @@ document.addEventListener('keydown', function (event) {
     }
 
     if (!isInputActive) {
-        var allItems = getAllItems();
+        var allGroups = getAllGroupsInVisualOrder();
 
         if (event.key === 'ArrowUp') {
             event.preventDefault();
-            if (allItems.length > 0) {
-                if (selectedIndex > 0) {
-                    selectedIndex--;
-                } else if (selectedIndex === 0) {
-                    selectedIndex = -1;
+            if (allGroups.length > 0) {
+                if (selectedGroup === null) {
+                    selectedGroup = allGroups[allGroups.length - 1];
                 } else {
-                    selectedIndex = allItems.length - 1;
+                    var currentIndex = allGroups.indexOf(selectedGroup);
+                    if (currentIndex > 0) {
+                        selectedGroup = allGroups[currentIndex - 1];
+                    } else {
+                        selectedGroup = null;
+                    }
                 }
             }
             isEditingDesc = false;
@@ -154,13 +154,16 @@ document.addEventListener('keydown', function (event) {
 
         if (event.key === 'ArrowDown') {
             event.preventDefault();
-            if (allItems.length > 0) {
-                if (selectedIndex < allItems.length - 1) {
-                    selectedIndex++;
-                } else if (selectedIndex === allItems.length - 1) {
-                    selectedIndex = -1;
+            if (allGroups.length > 0) {
+                if (selectedGroup === null) {
+                    selectedGroup = allGroups[0];
                 } else {
-                    selectedIndex = 0;
+                    var currentIndex = allGroups.indexOf(selectedGroup);
+                    if (currentIndex < allGroups.length - 1) {
+                        selectedGroup = allGroups[currentIndex + 1];
+                    } else {
+                        selectedGroup = null;
+                    }
                 }
             }
             isEditingDesc = false;
@@ -168,31 +171,28 @@ document.addEventListener('keydown', function (event) {
             return;
         }
 
-        if ((event.key === 't' || event.key === 'T' || event.key === 'ArrowRight') && selectedIndex >= 0 && allItems.length > 0) {
+        if ((event.key === 't' || event.key === 'T' || event.key === 'ArrowRight') && selectedGroup !== null) {
             event.preventDefault();
-            var group = allItems[selectedIndex].closest('.task-group');
-            if (!group.classList.contains('completed')) {
+            if (!selectedGroup.classList.contains('completed')) {
                 isEditingDesc = true;
-                editDescription(allItems[selectedIndex]);
+                var li = selectedGroup.querySelector('li');
+                editDescription(li);
             }
             return;
         }
 
-        if ((event.key === 'e' || event.key === 'E') && selectedIndex >= 0 && allItems.length > 0) {
+        if ((event.key === 'e' || event.key === 'E') && selectedGroup !== null) {
             event.preventDefault();
-            var group = allItems[selectedIndex].closest('.task-group');
-            if (!group.classList.contains('completed')) {
+            if (!selectedGroup.classList.contains('completed')) {
                 isEditingTask = true;
-                editTask(allItems[selectedIndex]);
+                var li = selectedGroup.querySelector('li');
+                editTask(li);
             }
             return;
         }
 
-        if ((event.code === 'Space' || (event.key === 'Enter' && !event.ctrlKey && !event.metaKey)) && selectedIndex >= 0) {
+        if ((event.code === 'Space' || (event.key === 'Enter' && !event.ctrlKey && !event.metaKey)) && selectedGroup !== null) {
             event.preventDefault();
-
-            var allGroups = Array.from(todoList.querySelectorAll('.task-group'));
-            var selectedGroup = allGroups[selectedIndex];
 
             if (selectedGroup.classList.contains('completed')) {
                 // 已完成 -> 变未完成，找到最后一个未完成任务的位置
@@ -208,7 +208,6 @@ document.addEventListener('keydown', function (event) {
                 selectedGroup.classList.add('completed');
             }
 
-            selectedIndex = -1;
             saveData();
             refreshView();
             updateStats();
@@ -222,7 +221,7 @@ document.addEventListener('keydown', function (event) {
                 for (var i = completedGroups.length - 1; i >= 0; i--) {
                     completedGroups[i].remove();
                 }
-                selectedIndex = -1;
+                selectedGroup = null;
                 refreshView();
                 saveData();
                 updateStats();
@@ -254,6 +253,15 @@ function getAllUncompletedItems() {
         items.push(groups[i].querySelector('li'));
     }
     return items;
+}
+
+// ============================================
+// 4.6 获取按视觉显示顺序的任务组(未完成在前)
+// ============================================
+function getAllGroupsInVisualOrder() {
+    var uncompleted = Array.from(todoList.querySelectorAll('.task-group:not(.completed)'));
+    var completed = Array.from(todoList.querySelectorAll('.task-group.completed'));
+    return uncompleted.concat(completed);
 }
 
 // ============================================
@@ -360,20 +368,7 @@ function setupDragEvents(group) {
 // ============================================
 function handleTaskClick(liElement) {
     var group = liElement.closest('.task-group');
-    var allGroups = todoList.querySelectorAll('.task-group');
-    var items = [];
-
-    // 如果点击已完成任务，也要能高光
-    for (var i = 0; i < allGroups.length; i++) {
-        items.push(allGroups[i].querySelector('li'));
-    }
-
-    for (var i = 0; i < items.length; i++) {
-        if (items[i] === liElement) {
-            selectedIndex = i;
-            break;
-        }
-    }
+    selectedGroup = group;
     refreshView();
 }
 
@@ -436,7 +431,9 @@ function saveTask(inputElement) {
     } else {
         // 空任务：删除该任务组
         group.remove();
-        selectedIndex = -1;
+        if (selectedGroup === group) {
+            selectedGroup = null;
+        }
         saveData();
         updateStats();
     }
@@ -562,7 +559,7 @@ function cancelEditDesc(inputElement) {
 function refreshView() {
     var allGroups = Array.from(todoList.querySelectorAll('.task-group'));
     for (var i = 0; i < allGroups.length; i++) {
-        if (i === selectedIndex && selectedIndex >= 0) {
+        if (selectedGroup && allGroups[i] === selectedGroup) {
             allGroups[i].classList.add('focused');
         } else {
             allGroups[i].classList.remove('focused');
