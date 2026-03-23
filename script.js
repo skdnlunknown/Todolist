@@ -388,7 +388,6 @@ function editTask(liElement) {
         isEditingTask = true;
         currentTaskInput = existingInput;
         existingInput.focus();
-        existingInput.setSelectionRange(existingInput.value.length, existingInput.value.length);
         return;
     }
 
@@ -406,7 +405,11 @@ function editTask(liElement) {
 
     currentTaskInput = input;
     input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
+
+    // 输入框内双击不再冒泡到 li，避免重复触发编辑逻辑
+    input.addEventListener('dblclick', function (e) {
+        e.stopPropagation();
+    });
 
     input.addEventListener('blur', function () {
         setTimeout(() => {
