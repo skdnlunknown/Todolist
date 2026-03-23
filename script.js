@@ -245,6 +245,18 @@ function getAllItems() {
 }
 
 // ============================================
+// 4.5 获取所有未完成的任务列表
+// ============================================
+function getAllUncompletedItems() {
+    var groups = todoList.querySelectorAll('.task-group:not(.completed)');
+    var items = [];
+    for (var i = 0; i < groups.length; i++) {
+        items.push(groups[i].querySelector('li'));
+    }
+    return items;
+}
+
+// ============================================
 // 5. 添加任务函数 - 新任务显示在最上方
 // ============================================
 function addTask(text) {
@@ -498,6 +510,7 @@ function saveDescription(inputElement) {
     isEditingDesc = false;
     currentDescInput = null;
 
+    var li = group.querySelector('li');
     if (descText.length > 0) {
         var desc = document.createElement('div');
         desc.classList.add('task-desc');
@@ -508,7 +521,6 @@ function saveDescription(inputElement) {
         });
         group.appendChild(desc);
 
-        var li = group.querySelector('li');
         li.dataset.description = descText;
         saveData();
     } else {
