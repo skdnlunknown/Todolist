@@ -382,10 +382,22 @@ function editTask(liElement) {
         return;
     }
 
+    // 已在编辑当前任务时，直接聚焦现有输入框，避免重复创建导致内容丢失
+    var existingInput = liElement.querySelector('input.task-edit-input');
+    if (existingInput) {
+        isEditingTask = true;
+        currentTaskInput = existingInput;
+        existingInput.focus();
+        existingInput.setSelectionRange(existingInput.value.length, existingInput.value.length);
+        return;
+    }
+
     var originalText = liElement.textContent;
+    liElement.dataset.originalText = originalText;
 
     var input = document.createElement('input');
     input.type = 'text';
+    input.className = 'task-edit-input';
     input.style.cssText = 'background: rgba(255, 255, 255, 0.1); border: none; border-bottom: 1px solid #555; color: #fff; font-size: 2.2rem; width: 100%; outline: none; padding: 0; font-weight: 600;';
     input.value = originalText;
 
@@ -409,6 +421,10 @@ function editTask(liElement) {
 // 9. 保存任务标题
 // ============================================
 function saveTask(inputElement) {
+    if (!inputElement || !inputElement.parentNode) {
+        return;
+    }
+
     var newText = inputElement.value.trim();
     var liElement = inputElement.parentNode;
     var group = liElement.closest('.task-group');
@@ -418,6 +434,7 @@ function saveTask(inputElement) {
 
     if (newText.length > 0) {
         liElement.textContent = newText;
+        liElement.dataset.originalText = newText;
         liElement.addEventListener('click', function (e) {
             e.stopPropagation();
             handleTaskClick(liElement);
@@ -445,6 +462,10 @@ function saveTask(inputElement) {
 // 10. 取消编辑任务
 // ============================================
 function cancelEditTask(inputElement) {
+    if (!inputElement || !inputElement.parentNode) {
+        return;
+    }
+
     var liElement = inputElement.parentNode;
     var originalText = liElement.dataset.originalText || '';
 
