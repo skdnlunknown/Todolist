@@ -652,18 +652,19 @@ window.addEventListener('load', function () {
         li.dataset.timestamp = saved[i].timestamp || new Date().getTime();
         li.dataset.description = saved[i].description || '';
 
-        li.addEventListener('click', function (e) {
-            e.stopPropagation();
-            handleTaskClick(li);
-        });
-        li.addEventListener('dblclick', function (e) {
-            e.stopPropagation();
-            var grp = li.closest('.task-group');
-            if (!grp.classList.contains('completed')) {
-                isEditingTask = true;
-                editTask(li);
-            }
-        });
+        (function (liElement, grp) {
+            liElement.addEventListener('click', function (e) {
+                e.stopPropagation();
+                handleTaskClick(liElement);
+            });
+            liElement.addEventListener('dblclick', function (e) {
+                e.stopPropagation();
+                if (!grp.classList.contains('completed')) {
+                    isEditingTask = true;
+                    editTask(liElement);
+                }
+            });
+        })(li, group);
 
         if (saved[i].done) {
             group.classList.add('completed');
@@ -675,18 +676,20 @@ window.addEventListener('load', function () {
             var desc = document.createElement('div');
             desc.classList.add('task-desc');
             desc.textContent = saved[i].description;
-            desc.addEventListener('click', function (e) {
-                e.stopPropagation();
-                handleTaskClick(li);
-            });
-            desc.addEventListener('dblclick', function (e) {
-                e.stopPropagation();
-                var grp = li.closest('.task-group');
-                if (!grp.classList.contains('completed')) {
-                    isEditingDesc = true;
-                    editDescription(li);
-                }
-            });
+            (function (liElement) {
+                desc.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    handleTaskClick(liElement);
+                });
+                desc.addEventListener('dblclick', function (e) {
+                    e.stopPropagation();
+                    var grp = liElement.closest('.task-group');
+                    if (!grp.classList.contains('completed')) {
+                        isEditingDesc = true;
+                        editDescription(liElement);
+                    }
+                });
+            })(li);
             group.appendChild(desc);
         }
 
