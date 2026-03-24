@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Minimalist Todo Mobile</title>
+    <script>
+        (function () {
+            var params = new URLSearchParams(location.search);
+            if (params.get("view") === "mobile") {
+                return;
+            }
+
+            var ua = navigator.userAgent || "";
+            var coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+            var isMobileUA = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(ua);
+            var narrow = window.innerWidth <= 900;
+            var shouldUseMobile = isMobileUA || coarse || narrow;
+
+            if (!shouldUseMobile) {
+                location.replace("../minimalist_pc/index.html");
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main class="app" aria-label="极简任务列表">
+        <header class="pull-hint" id="pullHint" aria-live="polite">
+            <span class="pull-label">下拉添加任务</span>
+        </header>
+
+        <section class="composer" id="composer" aria-hidden="true">
+            <input id="newTaskInput" type="text" placeholder="输入任务并回车" autocomplete="off" spellcheck="false">
+        </section>
+
+        <p id="emptyHint" class="empty-hint" aria-hidden="true">下拉添加任务</p>
+
+        <ul id="taskList" class="task-list" aria-label="任务列表"></ul>
+    </main>
+
+    <div class="more-sheet" id="moreSheet" aria-hidden="true">
+        <div class="sheet-backdrop" id="sheetBackdrop"></div>
+        <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+            <div class="sheet-top-row">
+                <input id="sheetTaskNameInput" type="text" aria-label="任务名称">
+                <button id="saveTaskName" class="sheet-inline-save" type="button">保存名称</button>
+            </div>
+
+            <div class="sheet-section">
+                <h3>标签</h3>
+                <div class="tag-actions" id="tagActions">
+                    <button type="button" data-tag="none">无标签</button>
+                    <button type="button" data-tag="red"><span class="tag-dot tag-red"></span>红</button>
+                    <button type="button" data-tag="orange"><span class="tag-dot tag-orange"></span>橙</button>
+                    <button type="button" data-tag="green"><span class="tag-dot tag-green"></span>绿</button>
+                    <button type="button" data-tag="blue"><span class="tag-dot tag-blue"></span>蓝</button>
+                </div>
+            </div>
+
+            <div class="sheet-section">
+                <h3>分组</h3>
+                <div class="group-actions" id="groupActions">
+                    <button type="button" data-group="none">无分组</button>
+                    <button type="button" data-group="study">study</button>
+                    <button type="button" data-group="entertainment">entertainment</button>
+                    <button type="button" data-group="withme">withme</button>
+                </div>
+            </div>
+
+            <div class="sheet-section">
+                <h3>置顶</h3>
+                <button id="pinToggle" class="sheet-primary" type="button">设为置顶</button>
+            </div>
+
+            <div class="sheet-section">
+                <h3>时间提醒 <small>（实际上不能提醒）</small></h3>
+                <div class="time-reminder-container">
+                    <!-- 第一行：日期选择 -->
+                    <div class="reminder-row reminder-date-row">
+                        <div class="date-display" id="dateDisplay">2026-03-24</div>
+                        <button class="calendar-btn" id="calendarBtn" type="button" aria-label="选择日期">📅</button>
+                    </div>
+                    <!-- 第二行：时间选择（循环滚轮） -->
+                    <div class="reminder-row reminder-time-row">
+                        <button class="time-wheel-btn" id="hourBtn" data-type="hour" type="button">00</button>
+                        <span class="time-separator">:</span>
+                        <button class="time-wheel-btn" id="minuteBtn" data-type="minute" type="button">00</button>
+                    </div>
+                    <!-- 隐藏的日期select，用于保存值 -->
+                    <div style="display:none;">
+                        <select id="dueYear" aria-label="年份"></select>
+                        <select id="dueMonth" aria-label="月份"></select>
+                        <select id="dueDay" aria-label="日期"></select>
+                        <select id="dueHour" aria-label="小时"></select>
+                        <select id="dueMinute" aria-label="分钟"></select>
+                    </div>
+
+                    <button id="saveDue" class="sheet-primary" type="button">保存提醒</button>
+                    <button id="clearDue" type="button">清除提醒</button>
+                </div>
+            </div>
+
+            <!-- 日历选择器 Modal -->
+            <div id="calendarModal" class="calendar-modal" aria-hidden="true">
+                <div class="calendar-backdrop" id="calendarBackdrop"></div>
+                <div class="calendar-panel" role="dialog" aria-modal="true">
+                    <div class="calendar-header">
+                        <button id="calendarPrevMonth" type="button">‹</button>
+                        <div class="calendar-title" id="calendarTitle">2026年3月</div>
+                        <button id="calendarNextMonth" type="button">›</button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <div>日</div>
+                        <div>一</div>
+                        <div>二</div>
+                        <div>三</div>
+                        <div>四</div>
+                        <div>五</div>
+                        <div>六</div>
+                    </div>
+                    <div class="calendar-dates" id="calendarDates"></div>
+                    <div class="calendar-actions">
+                        <button id="calendarClose" type="button" class="calendar-close-btn">关闭</button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="closeMore" type="button">完成</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite">
+        <span id="toastText"></span>
+        <button id="toastUndo" type="button" class="toast-undo">撤销</button>
+    </div>
+
+    <template id="taskTemplate">
+        <li class="task-item" data-id="">
+            <div class="task-track">
+                <div class="action-tray" aria-hidden="true">
+                    <button class="tray-btn tray-more" type="button" aria-label="更多操作">...</button>
+                    <button class="tray-btn tray-delete" type="button" aria-label="删除任务">
+                        <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                            <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h10l-1 11H8L7 9Zm3 2v7h2v-7h-2Zm4 0v7h2v-7h-2Z"
+                                fill="currentColor"></path>
+                        </svg>
+                    </button>
+                </div>
+                <article class="task-card">
+                    <div class="task-content">
+                        <div class="task-title-row">
+                            <span class="task-tag" aria-hidden="true"></span>
+                            <p class="task-text"></p>
+                        </div>
+                        <p class="task-group"></p>
+                    </div>
+                </article>
+            </div>
+        </li>
+    </template>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
