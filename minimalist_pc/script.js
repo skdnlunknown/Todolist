@@ -408,6 +408,14 @@ function editTask(liElement) {
         e.stopPropagation();
     });
 
+    input.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
+
+    input.addEventListener('pointerdown', function (e) {
+        e.stopPropagation();
+    });
+
     input.addEventListener('blur', function () {
         setTimeout(() => {
             if (document.activeElement !== input) {

@@ -690,6 +690,14 @@ function beginEdit(taskId, card, currentText) {
         // 其他按键（字母、数字等）允许默认输入行为
     });
 
+    input.addEventListener("click", function (event) {
+        event.stopPropagation();
+    });
+
+    input.addEventListener("pointerdown", function (event) {
+        event.stopPropagation();
+    });
+
     input.addEventListener("blur", commit);
 }
 
