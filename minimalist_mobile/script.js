@@ -679,14 +679,15 @@ function beginEdit(taskId, card, currentText) {
     }
 
     input.addEventListener("keydown", function (event) {
+        event.stopPropagation();
         if (event.key === "Enter") {
             event.preventDefault();
             commit();
-        }
-        if (event.key === "Escape") {
+        } else if (event.key === "Escape") {
             event.preventDefault();
             cancel();
         }
+        // 其他按键（字母、数字等）允许默认输入行为
     });
 
     input.addEventListener("blur", commit);

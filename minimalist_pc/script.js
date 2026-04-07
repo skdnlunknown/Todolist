@@ -37,11 +37,8 @@ document.addEventListener('keydown', function (event) {
             cancelEditTask(currentTaskInput);
             return;
         }
-        if (event.key === 'Tab' || (event.key !== 'Shift' && event.key !== 'Control' && event.key !== 'Alt' && event.key !== 'Meta')) {
-            if (event.key !== 'Shift' && event.key !== 'Control' && event.key !== 'Alt' && event.key !== 'Meta') {
-                saveTask(currentTaskInput);
-            }
-        }
+        // 其他按键（字母、数字等）允许input框处理，支持正常文本输入
+        event.stopPropagation();
         return;
     }
 
